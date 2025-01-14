@@ -1,0 +1,32 @@
+FROM python:3.13-slim
+
+# 1) Install required packages for downloading and extracting Deno
+#    - curl, ca-certificates for https requests
+#    - git if you need to clone repos
+#    - tar, unzip, xz-utils so the installer can extract Deno
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    git \
+    tar \
+    unzip \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2) Download and install Deno via official script
+RUN curl -fsSL https://deno.land/x/install/install.sh | sh
+
+# 3) Move deno to /usr/local/bin so it's on PATH
+RUN mv /root/.deno/bin/deno /usr/local/bin/deno
+
+# 4) Upgrade pip + setuptools and install aider-install (if needed)
+RUN pip install --upgrade pip setuptools aider-install
+
+# 5) Clone your repo
+RUN git clone https://github.com/Nyttja-Labs/Template
+WORKDIR /Template
+
+EXPOSE 80
+
+# 6) Default command: run the Deno server
+CMD ["deno", "run", "--allow-all", "server.ts"]
